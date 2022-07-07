@@ -1,0 +1,73 @@
+#
+# CQEN-QDCE Centre d'expertise appliquee en innovation
+# Template openshift pour déploier pod de backup
+# Author: Julio Cesar Torres <julio.cesartorresmcn.gouv.qc.ca> (@cesju02)
+# Date: 2022/07/04
+# SPDX-License-Identifier: LiLiQ-P
+# 
+kind: Template
+apiVersion: v1
+objects:
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+    creationTimestamp: null
+    labels:
+      io.kompose.service: sonarqube-sauvegarde-claim
+    name: sonarqube-sauvegarde-claim
+  spec:
+    # storageClassName: ocs-storagecluster-cephfs
+    storageClassName: ocs-storagecluster-gp2
+    accessModes:
+    - ReadWriteMany
+    resources:
+      requests:
+        storage: 1Gi
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: sonarqube-backup
+    annotations:
+      template.alpha.openshift.io/wait-for-ready: 'true'
+    labels:
+      app: sonarqube-backup
+  spec:
+    strategy:
+      type: Recreate
+    replicas: 1
+    selector:
+      name: sonarqube-backup
+    template:
+      metadata:
+        labels:
+          name: sonarqube-backup
+      spec:
+        containers:
+        - image: redis:latest
+          imagePullPolicy: ""
+          name: sonarqube-backup
+          resources: {}
+          volumeMounts:
+          - mountPath: /var/lib/postgres/backup
+            name: sonarqube-sauvegarde-claim
+        restartPolicy: Always
+        serviceAccountName: ""
+        volumes:
+        - name: sonarqube-sauvegarde-claim
+          persistentVolumeClaim:
+            claimName: sonarqube-sauvegarde-claim
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: sonarqube-backup
+    labels:
+      name: sonarqube-backup
+  spec:
+    ports:
+    - name: "6379"
+      port: 6379
+      targetPort: 6379
+    selector:
+      name: sonarqube-backup
+  status:
+    loadBalancer: {}

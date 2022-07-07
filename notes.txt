@@ -1,0 +1,87 @@
+# Backup d'une database postgres sur Openshift 
+
+PGPASSWORD="admin" /usr/bin/pg_dump --username=admin --host=postgresql1 --port=5432 -F p --column-inserts --clean --create postgres | gzip > /tmp/postgres-backupSQL1.sql
+
+
+oc rsync postgresql1-1-6ps8j:/tmp/postgres-backup.sql .
+
+
+## Références 
+
+OC rsync : https://docs.openshift.com/container-platform/3.11/dev_guide/copy_files_to_container.html
+
+pg-dump PostgreSQL : https://www.postgresql.org/docs/current/app-pgdump.html
+
+Guia de backup : https://www.tecmint.com/backup-and-restore-postgresql-database/#:~:text=To%20back%20up%2C%20a%20PostgreSQL,plain%2Dtext%20SQL%20script%20file.
+
+
+
+# Installation SonarQube
+
+Description
+
+SonarQube est une plateforme opensource développée par SonarSource pour l'inspection continue de la qualité du code afin d'effectuer des revues automatiques avec analyse statique du code pour détecter les bogues de code sur 17 langages de programmation. 
+
+
+SonarQube est une plateforme opensource développée par SonarSource pour l'inspection continue de la qualité du code afin d'effectuer des revues automatiques avec analyse statique du code pour détecter bogues.
+
+https://docs.sonarqube.org/latest/setup/get-started-2-minutes/
+
+https://github.com/SonarSource/docker-sonarqube/blob/89b9a8e6dbedf21e44c162afb55ae24afb268b3f/9/community/Dockerfile
+
+
+```
+POSTGRESQL_DATABASE=postgres
+POSTGRESQL_PASSWORD=admin
+POSTGRESQL_USER=admin
+
+
+PGPASSWORD="$DATABASE_PASSWORD" /usr/bin/pg_dump --username=$DATABASE_USER --host=$DATABASE_HOST --port=$DATABASE_PORT --column-inserts --clean --create ${DATABASE_NAME} | gzip > /database-backup/$FILENAME
+
+
+DATABASE_PASSWORD=admin
+DATABASE_USER=admin
+DATABASE_HOST=postgresql1
+DATABASE_PORT=5432
+DATABASE_NAME=postgres
+
+
+PGPASSWORD="admin" /usr/bin/pg_dump --username=admin --host=postgresql1 --port=5432 --column-inserts --clean --create postgres | gzip > /tmp/postgres-backup.sql 
+
+
+postgresql
+sonarqube
+sonar
+sonar
+
+PGPASSWORD="admin" /usr/bin/pg_dump --username=admin --host=postgresql1 --port=5432 --column-inserts --clean --create postgres  > /tmp/postgres-backup.sql 
+
+oc rsync postgresql1-1-6ps8j:/tmp/postgres-backup.sql ./backup-postgres.sql 
+
+```
+
+
+
+
+## Erreur de déploiement
+
+```
+Warning alert:There is 1 warning alert.
+Unable to sync image for tag sonarqube:9.0.1-community. dockerimage.image.openshift.io "docker.io/openshiftdemos/sonarqube:9.0.1-community" not found
+
+
+
+triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - sonarqube
+        from:
+          kind: ImageStreamTag
+          namespace: sonarqube
+          name: 'sonarqube:9.0.1-community'
+        lastTriggeredImage: >-
+          openshiftdemos/sonarqube@sha256:fe2c7b8e9923c4dc4bd7a5d12d51ee61eb171f8898121d5f7a921ba4e5a3e67c
+```          
