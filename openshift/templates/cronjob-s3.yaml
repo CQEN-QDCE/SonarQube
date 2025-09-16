@@ -14,6 +14,12 @@ metadata:
     description: 'Template for backup job adding files to S3 bucket'
     tags: 'database'
 parameters:
+  - name: S3_BUCKET
+    description: 'S3 Bucket name'
+    required: true
+  - name: TIMEZONE
+    description: 'Timezone to be used'
+    required: true
   - name: DATABASE_BACKUP_KEEP
     description: 'Number of backups to keep'
     value: '7'
@@ -78,7 +84,7 @@ objects:
                       echo "";
                       echo "Backing up the file to S3 bucket";
                       echo $(aws configure list);
-                      aws s3 cp /database-backup/$FILENAME s3://sonarqube-backup-repo/database-backup/$FILENAME;
+                      aws s3 cp /database-backup/$FILENAME s3://${S3_BUCKET}/database-backup/$FILENAME;
                   env:
                     - name: DATABASE_BACKUP_KEEP
                       value: ${DATABASE_BACKUP_KEEP}
@@ -92,8 +98,10 @@ objects:
                       value: ${DATABASE_PORT}
                     - name: DATABASE_NAME
                       value: ${DATABASE_NAME}
+                    - name: S3_BUCKET
+                      value: ${S3_BUCKET}
                     - name: TZ
-                      value: America/New York
+                      value: ${TIMEZONE}
                     - name: AWS_ACCESS_KEY_ID
                       value: ${AWS_ACCESS_KEY_ID}
                     - name: AWS_SECRET_ACCESS_KEY
